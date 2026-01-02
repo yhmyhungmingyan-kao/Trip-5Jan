@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>四國5天4夜 (穩定版)</title>
+<style>
+    /* 基礎設定 */
+    body {
+        font-family: -apple-system, sans-serif; background: #F2F2F2; color: #333;
+        margin: 0; padding: 0; padding-bottom: 100px; -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* 頂部資訊 */
+    .header {
+        background: #FFF; padding: 12px; text-align: center; position: sticky; top: 0; z-index: 100;
+        border-bottom: 1px solid #DDD; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    h1 { margin: 5px 0; font-size: 1.2rem; }
+    .rates { font-size: 0.85rem; color: #666; background: #EEE; padding: 4px 10px; border-radius: 15px; display: inline-block; }
+
+    /* 切換按鈕 */
+    .nav { display: flex; padding: 10px; gap: 10px; background: #FFF; border-bottom: 1px solid #EEE; }
+    .nav-btn {
+        flex: 1; padding: 10px; border: 1px solid #DDD; background: #F8F8F8;
+        border-radius: 6px; font-weight: bold; color: #666; font-size: 1rem;
+    }
+    .nav-btn.active { background: #C5B396; color: #FFF; border-color: #C5B396; }
+
+    /* 頁面容器 */
+    .page { display: none; padding: 10px; }
+    .page.active { display: block; }
+
+    /* 行程卡片 */
+    .card { background: #FFF; border-radius: 8px; margin-bottom: 15px; overflow: hidden; border: 1px solid #E0E0E0; }
+    .card-head {
+        padding: 12px 15px; background: #EFEFEF; border-bottom: 1px solid #DDD;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .weather { font-size: 0.8rem; color: #555; text-decoration: none; border: 1px solid #AAA; padding: 2px 6px; border-radius: 4px; background: #FFF; }
+
+    /* 行程列表 */
+    .list { padding: 5px 15px 15px 15px; display: none; }
+    .item { padding: 15px 0; border-bottom: 1px solid #EEE; }
+    .item:last-child { border: none; }
+    
+    .time { background: #C5B396; color: #FFF; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+    .name { font-size: 1.05rem; font-weight: bold; margin: 6px 0; color: #222; }
+    .desc { color: #666; font-size: 0.9rem; margin-bottom: 8px; line-height: 1.4; }
+
+    /* 交通資訊框 */
+    .trans {
+        background: #F0F8FF; border: 1px solid #BCDFF1; border-left: 4px solid #4A90E2;
+        padding: 8px; border-radius: 4px; font-size: 0.85rem; margin-bottom: 8px;
+    }
+    .row { display: flex; margin-bottom: 3px; }
+    .lbl { font-weight: bold; min-width: 45px; color: #333; }
+    .tag { color: #FFF; padding: 1px 4px; border-radius: 3px; font-size: 0.75rem; margin-left: 5px; }
+    .tag-r { background: #E74C3C; } /* 紅色警示 */
+    .tag-g { background: #2ECC71; } /* 綠色安全 */
+    .tag-o { background: #F39C12; } /* 橘色普通 */
+
+    /* 按鈕群 */
+    .btns { display: flex; gap: 8px; margin-top: 8px; }
+    .btn {
+        flex: 1; padding: 8px 0; text-align: center; border-radius: 4px;
+        text-decoration: none; font-size: 0.9rem; font-weight: bold;
+        border: 1px solid #CCC; background: #FFF; color: #444; cursor: pointer;
+    }
+    .btn-go { background: #4A90E2; color: #FFF; border: none; }
+    .btn-wk { background: #2ECC71; color: #FFF; border: none; }
+    .btn-full { width: 100%; margin-top: 8px; background: #F5A623; color: #FFF; border: none; }
+
+    /* 彈窗 */
+    .modal-bg {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 999;
+    }
+    .modal-box {
+        background: #FFF; width: 85%; max-width: 320px; padding: 20px;
+        border-radius: 10px; max-height: 80vh; overflow-y: auto;
+    }
+
+    /* 記帳 */
+    .sum-box { background: #FFF; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid #DDD; }
+    .input-box { background: #FFF; padding: 15px; border-radius: 8px; border: 1px solid #DDD; }
+    .in-row { display: flex; gap: 5px; margin-bottom: 10px; }
+    .inp { flex: 1; padding: 8px; border: 1px solid #CCC; border-radius: 4px; font-size: 1rem; }
+    .hist-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #EEE; align-items: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>四國5天4夜</h1>
+    <span class="rates">1 JPY ≈ 0.051 HKD / 0.215 TWD</span>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" onclick="pg('trip',this)">📅 行程</button>
+    <button class="nav-btn" onclick="pg('money',this)">💰 記帳</button>
+</div>
+
+<div id="trip" class="page active"></div>
+
+<div id="money" class="page">
+    <div class="sum-box">
+        <div style="color:#888; font-size:0.9rem">總支出</div>
+        <div style="font-size:2rem; font-weight:bold" id="t-jpy">¥0</div>
+        <div style="color:#999; font-size:0.85rem" id="t-for">HK$0 / NT$0</div>
+    </div>
+    
+    <div class="input-box">
+        <div class="in-row">
+            <select id="dt" class="inp" style="flex:1"><option>1/5</option><option>1/6</option><option>1/7</option><option>1/8</option><option>1/9</option></select>
+            <input id="nm" class="inp" placeholder="項目" style="flex:2">
+        </div>
+        <input id="am" type="number" class="inp" placeholder="金額 (日幣)" style="width:100%; box-sizing:border-box; margin-bottom:10px">
+        <button onclick="add()" class="btn btn-go" style="width:100%">＋ 加入記帳</button>
+    </div>
+    <div id="hist" class="input-box" style="margin-top:15px; border:none; background:none; padding:0;"></div>
+</div>
+
+<div id="mod" class="modal-bg" onclick="cl(event)">
+    <div class="modal-box">
+        <h3 id="mt" style="margin-top:0; border-bottom:1px solid #EEE; padding-bottom:10px;"></h3>
+        <div id="mc" style="line-height:1.5; font-size:0.95rem; color:#444;"></div>
+        <button onclick="document.getElementById('mod').style.display='none'" class="btn" style="width:100%; margin-top:15px; background:#EEE">關閉</button>
+    </div>
+</div>
+
+<script>
+// --- 資料庫 ---
+const D = [
+ {
+  d: "1/5 (一)", t: "抵達高松", w: "☁️ 氣象", wl: "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=370000",
+  i: [
+   {tm:"11:10", n:"機場巴士 → 兵庫町", d:"直達市區。", 
+    tr:{l:"機場2號乘車處", f:"飛機到就有車", c:"tag-o", t:"配合航班"},
+    o:"Takamatsu Airport", z:"Hyogomachi Bus Stop", m:"transit",
+    tip:{t:"🚌 巴士攻略", c:"不用預約，出關左手邊買票，約¥1000。"}
+   },
+   {tm:"12:30", n:"うどん市場", d:"烏龍麵名店。", map:"Udon Ichiba Hyogo-machi"}
+  ]
+ },
+ {
+  d: "1/6 (二)", t: "金刀比羅宮", w: "☀️ 氣象", wl: "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=370000",
+  i: [
+   {tm:"09:00", n:"琴電前往琴平", d:"黃色電車。", 
+    tr:{l:"高松築港站", f:"15-30分/班", c:"tag-g", t:"班次密"},
+    o:"Takamatsu-Chikko Station", z:"Kotoden-Kotohira Station", m:"transit",
+    tip:{t:"🚋 琴電攻略", c:"免劃位，直接刷 IC 卡進站。"}
+   },
+   {tm:"10:00", n:"金刀比羅宮", d:"爬階梯。", map:"Kotohira-gu"},
+   {tm:"20:00", n:"回程：步行回飯店", d:"吃飽散步。", o:"Ikkaku Takamatsu", z:"Toyoko Inn Takamatsu Hyogomachi", m:"walking"}
+  ]
+ },
+ {
+  d: "1/7 (三)", t: "移動至松山", w: "🌥️ 氣象", wl: "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=380000",
+  i: [
+   {tm:"09:00", n:"JR 特急 Ishizuchi", d:"往松山 (2.5hr)。", 
+    tr:{l:"JR高松站", f:"1小時/班", c:"tag-r", t:"班次少"},
+    o:"Takamatsu Station", z:"Matsuyama Station", m:"transit",
+    tip:{t:"🚄 JR 購票", c:"建議 Day 1 就先買好「指定席」車票。"}
+   },
+   {tm:"13:30", n:"道後溫泉", d:"逛街+泡湯。", map:"Dogo Haikara Dori"},
+   {tm:"17:30", n:"回程：路面電車", d:"回飯店。", 
+    tr:{l:"道後溫泉站", f:"10分/班", c:"tag-g", t:"班次密"},
+    o:"Dogo Onsen Station", z:"Katsuyamacho Station", m:"transit",
+    tip:{t:"🚃 電車攻略", c:"不能用 IC 卡，請投幣 ¥180。"}
+   }
+  ]
+ },
+ {
+  d: "1/8 (四)", t: "松山城", w: "☀️ 氣象", wl: "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=380000",
+  i: [
+   {tm:"10:30", n:"松山城", d:"纜車+天守閣。", map:"Matsuyama Castle Ropeway Station"},
+   {tm:"16:00", n:"回程：步行回飯店", d:"整理行李。", o:"Okaido Shopping Street", z:"Toyoko Inn Matsuyama Ichibancho", m:"walking"}
+  ]
+ },
+ {
+  d: "1/9 (五)", t: "返程 (岡山回)", w: "☁️ 氣象", wl: "https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=330000",
+  i: [
+   {tm:"11:00", n:"JR 特急 Shiokaze", d:"往岡山 (3hr)。", 
+    tr:{l:"JR松山站", f:"1小時/班", c:"tag-r", t:"錯過趕不上飛機"},
+    o:"Matsuyama Station", z:"Okayama Station", m:"transit",
+    tip:{t:"⚠️ 回程 JR 注意", c:"一定要提早買票！推薦搭 11:25 的車。"}
+   },
+   {tm:"15:10", n:"岡山機場巴士", d:"往機場。", 
+    tr:{l:"岡山西口21號", f:"配合航班", c:"tag-o", t:"固定班次"},
+    o:"Okayama Station", z:"Okayama Airport", m:"transit",
+    tip:{t:"🚌 巴士攻略", c:"西口 21 號月台，旁邊有售票機。"}
+   },
+   {tm:"17:55", n:"IT263 飛高雄", d:"虎航。", map:"Okayama Airport"}
+  ]
+ }
+];
+
+// --- 渲染 ---
+function render() {
+ let h = "";
+ D.forEach((d, i) => {
+  let list = "";
+  d.i.forEach((x, xi) => {
+   // 交通框
+   let tr = "";
+   if(x.tr) tr = `<div class="trans"><div class="row"><div class="lbl">📍</div><div>${x.tr.l}</div></div><div class="row"><div class="lbl">⏰</div><div>${x.tr.f} <span class="tag ${x.tr.c}">${x.tr.t}</span></div></div></div>`;
+   
+   // 按鈕
+   let b = "";
+   if(x.tip) b += `<button class="btn btn-full" onclick="pop(${i},${xi})">🎫 購票攻略</button>`;
+   
+   if(x.o && x.z) {
+     // 使用標準 Google Maps 連結，防止當機
+     let url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(x.o)}&destination=${encodeURIComponent(x.z)}&travelmode=${x.m}`;
+     b += `<div class="btns"><a href="${url}" target="_blank" class="btn ${x.m=='walking'?'btn-wk':'btn-go'}">${x.m=='walking'?'🚶 步行導航':'🚌 查路線'}</a></div>`;
+   } else if(x.map) {
+     let url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.map)}`;
+     b += `<div class="btns"><a href="${url}" target="_blank" class="btn">📍 地圖</a></div>`;
+   }
+
+   list += `<div class="item"><span class="time">${x.tm}</span><div class="name">${x.n}</div>${tr}<div class="desc">${x.d}</div>${b}</div>`;
+  });
+  
+  let disp = i === 0 ? "block" : "none";
+  h += `<div class="card"><div class="card-head" onclick="tog(this)"><div><b>${i+1}</b> ${d.t}</div><a href="${d.wl}" target="_blank" class="weather">${d.w}</a></div><div class="list" style="display:${disp}">${list}</div></div>`;
+ });
+ document.getElementById("trip").innerHTML = h;
+ loadM();
+}
+
+// --- 功能 ---
+function pg(id, el) {
+ document.querySelectorAll(".page").forEach(x => x.style.display = "none");
+ document.querySelectorAll(".nav-btn").forEach(x => x.classList.remove("active"));
+ document.getElementById(id).style.display = "block";
+ el.classList.add("active");
+}
+
+function tog(el) {
+ let s = el.nextElementSibling.style;
+ s.display = s.display === "block" ? "none" : "block";
+}
+
+function pop(di, xi) {
+ let t = D[di].i[xi].tip;
+ document.getElementById("mt").innerText = t.t;
+ document.getElementById("mc").innerHTML = t.c;
+ document.getElementById("mod").style.display = "flex";
+}
+function cl(e) { if(e.target.id == "mod") e.target.style.display = "none"; }
+
+// --- 記帳 ---
+let M = [];
+function loadM() {
+ try { M = JSON.parse(localStorage.getItem("m_fix")) || []; } catch { M = []; }
+ drawM();
+}
+function drawM() {
+ let h = "", t = 0;
+ M.slice().reverse().forEach(x => {
+  t += parseInt(x.a);
+  h += `<div class="hist-item"><div><b>${x.n}</b> <small style="color:#999">(${x.d})</small></div><div>¥${x.a} <button onclick="del(${x.id})" style="border:none;background:none;color:#CCC;font-size:1.2rem;padding:0 10px">×</button></div></div>`;
+ });
+ document.getElementById("hist").innerHTML = h;
+ document.getElementById("t-jpy").innerText = "¥" + t;
+ document.getElementById("t-for").innerText = `HK$${Math.round(t * 0.051)} / NT$${Math.round(t * 0.215)}`;
+}
+function add() {
+ let d = document.getElementById("dt").value, n = document.getElementById("nm").value, a = document.getElementById("am").value;
+ if(!n || !a) return;
+ M.push({ id: Date.now(), d: d, n: n, a: a });
+ localStorage.setItem("m_fix", JSON.stringify(M));
+ document.getElementById("nm").value = ""; document.getElementById("am").value = "";
+ drawM();
+}
+function del(id) {
+ if(confirm("刪除？")) { M = M.filter(x => x.id != id); localStorage.setItem("m_fix", JSON.stringify(M)); drawM(); }
+}
+
+render();
+</script>
+</body>
+</html> 
